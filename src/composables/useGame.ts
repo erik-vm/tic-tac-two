@@ -1,19 +1,21 @@
-import { ref, computed, reactive } from 'vue';
+import { ref, computed, reactive, readonly, nextTick } from 'vue';
 import { GameModel } from '../models/GameModel';
+import { useGameStore } from '../store/gameStore';
 import {
   X_CLASS,
   CIRCLE_CLASS,
   BOARD_SIZE
-} from '../types/';
+} from '../types';
 import type {
   Player,
   MoveDirection,
   CellData,
   GameResult
-} from '../types/';
+} from '../types';
 
 export function useGame() {
   const model = new GameModel();
+  const gameStore = useGameStore();
 
   // Reactive state
   const gameState = ref(model.getState());
@@ -41,7 +43,9 @@ export function useGame() {
   };
 
   // Computed properties
-  const currentPlayerClass = computed(() => model.getCurrentPlayerClass());
+  const currentPlayerClass = computed(() => {
+    return gameState.value.circleTurn ? CIRCLE_CLASS : X_CLASS;
+  });
   const canShowMovementControls = computed(() => gameState.value.piecesLeft <= 4);
   const isInMovementPhase = computed(() => model.isInMovementPhase());
 
@@ -78,7 +82,7 @@ export function useGame() {
   };
 
   // Handle piece placement or movement
-  const handlePiecePlacement = (cell: CellData) => {
+  const handlePiecePlacement = async (cell: CellData) => {
     const currentClass = model.getCurrentPlayerClass();
 
     // Check if cell already has a piece
@@ -92,13 +96,16 @@ export function useGame() {
           cell.hasO = false;
           model.increasePiecesLeft();
         }
+        // Swap turns after movement attempt
         model.swapTurns();
         gameState.value = model.getState();
+        await nextTick();
         return;
       }
-      // Can't place on occupied cell in placement phase
+      // Can't place on occupied cell in placement phase - just swap turns
       model.swapTurns();
       gameState.value = model.getState();
+      await nextTick();
       return;
     }
 
@@ -113,11 +120,12 @@ export function useGame() {
 
     model.decreasePiecesLeft();
 
+    // Check for game end before swapping turns
     if (!checkGameEnd()) {
       model.swapTurns();
+      gameState.value = model.getState();
+      await nextTick();
     }
-
-    gameState.value = model.getState();
   };
 
   // Handle grid movement
@@ -127,11 +135,12 @@ export function useGame() {
     if (model.moveGrid(direction)) {
       updateGridDisplay();
 
+      // Check for game end before swapping turns
       if (!checkGameEnd()) {
         model.swapTurns();
+        gameState.value = model.getState();
       }
 
-      gameState.value = model.getState();
       console.log(`✅ Grid moved to new position`);
     } else {
       console.log("❌ Cannot move outside the board");
@@ -141,7 +150,7 @@ export function useGame() {
   // Update grid display
   const updateGridDisplay = () => {
     // Clear all grid markers
-    boardCells.forEach((cell: { isGrid: boolean; }) => {
+    boardCells.forEach(cell => {
       cell.isGrid = false;
     });
 
@@ -181,6 +190,7 @@ export function useGame() {
         isDraw: true,
         message: "Draw! No more pieces left."
       };
+      gameStore.recordDraw();
     } else {
       const winner = winnerClass === CIRCLE_CLASS ? "O" : "X";
       gameResult.value = {
@@ -188,6 +198,7 @@ export function useGame() {
         isDraw: false,
         message: `${winner} Wins!`
       };
+      gameStore.recordWin(winnerClass!);
     }
     showWinMessage.value = true;
   };
@@ -251,7 +262,7 @@ export function useGame() {
 
   return {
     // State
-    gameState,
+    gameState: readonly(gameState),
     gameResult,
     showWinMessage,
     boardCells,
