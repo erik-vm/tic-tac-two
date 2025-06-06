@@ -1,0 +1,242 @@
+*,
+*::after,
+*::before {
+    box-sizing: border-box;
+}
+
+:root {
+    --cell-size: 100px;
+    --mark-size: calc(var(--cell-size) * .9);
+    --grid-mv-cell-size: 40px;
+}
+
+body {
+    margin: 0;
+}
+
+.intialBoard {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+}
+
+.controls {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+}
+
+.moveGridCntr {
+    display: none;
+}
+
+.moveGridCntr.active{
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+}
+
+.moveGridBtn {
+    width: var(--grid-mv-cell-size);
+    height: var(--grid-mv-cell-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath d='M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z'/%3E%3C/svg%3E");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.controls button {
+    font-size: 2rem;
+    background-color: white;
+    border: 1px solid black;
+    padding: .25rem .5rem;
+    cursor: pointer;
+    margin: 1.5rem .5rem;
+}
+
+.moveGridBtn:hover {
+    filter: brightness(0) saturate(100%) invert(97%) sepia(30%) saturate(5368%) hue-rotate(308deg) brightness(98%) contrast(94%);
+}
+
+.moveGridBtn:first-child {
+    transform: rotate(-45deg);
+}
+
+.moveGridBtn:nth-child(3) {
+    transform: rotate(45deg);
+}
+
+.moveGridBtn:nth-child(4) {
+    transform: rotate(-90deg);
+}
+
+.moveGridBtn:nth-child(5) {
+    background-image: none;
+    cursor: default;
+}
+
+.moveGridBtn:nth-child(6) {
+    transform: rotate(90deg);
+}
+
+.moveGridBtn:nth-child(7) {
+    transform: rotate(-135deg);
+}
+
+.moveGridBtn:nth-child(8) {
+    transform: rotate(180deg);
+}
+
+.moveGridBtn:nth-child(9) {
+    transform: rotate(135deg);
+}
+
+.controls button:hover {
+    background-color: #F3B869;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.cell.grid {
+    background-color: rgba(240, 162, 60, 0.768);
+}
+
+.cell:first-child,
+.cell:nth-child(2),
+.cell:nth-child(3),
+.cell:nth-child(4),
+.cell:nth-child(5) {
+    border-top: none;
+}
+
+.cell:nth-child(5n+1) {
+    border-left: none;
+}
+
+.cell:nth-child(5n+5) {
+    border-right: none;
+}
+
+.cell:last-child,
+.cell:nth-child(24),
+.cell:nth-child(23),
+.cell:nth-child(22),
+.cell:nth-child(21) {
+    border-bottom: none;
+}
+
+.cell.x::before,
+.cell.x::after,
+.cell.circle::before {
+    background-color: black;
+}
+
+.board.x .cell:not(.x):not(.circle):hover::before,
+.board.x .cell:not(.x):not(.circle):hover::after,
+.board.circle .cell:not(.x):not(.circle):hover::before {
+    background-color: rgb(71, 71, 71);
+}
+
+.cell.x::before,
+.cell.x::after,
+.board.x .cell:not(.x):not(.circle):hover::before,
+.board.x .cell:not(.x):not(.circle):hover::after {
+    content: '';
+    position: absolute;
+    width: calc(var(--mark-size) * .15);
+    height: var(--mark-size);
+}
+
+.cell.x::before,
+.board.x .cell:not(.x):not(.circle):hover::before {
+    transform: rotate(45deg);
+}
+
+.cell.x::after,
+.board.x .cell:not(.x):not(.circle):hover::after {
+    transform: rotate(-45deg);
+}
+
+.cell.circle::before,
+.cell.circle::after,
+.board.circle .cell:not(.x):not(.circle):hover::before,
+.board.circle .cell:not(.x):not(.circle):hover::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+}
+
+.cell.circle::before,
+.board.circle .cell:not(.x):not(.circle):hover::before {
+    width: var(--mark-size);
+    height: var(--mark-size);
+}
+
+.cell.circle::after,
+.board.circle .cell:not(.x):not(.circle):hover::after {
+    width: calc(var(--mark-size) * .7);
+    height: calc(var(--mark-size) * .7);
+    background-color: rgb(255, 255, 255);
+}
+
+.cell.grid.circle::after,
+.board.circle .cell.grid:not(.x):not(.circle):hover::after {
+    background-color: #F3B869;
+}
+
+.winning-message {
+    position: fixed;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, .9);
+    color: white;
+    font-size: 5rem;
+}
+
+.winning-message button {
+    font-size: 3rem;
+    background-color: white;
+    border: 1px solid black;
+    padding: .25rem .5rem;
+    cursor: pointer;
+}
+
+.winning-message button:hover {
+    background-color: black;
+    color: white;
+    border-color: white;
+}
+
+.winning-message.show {
+    display: flex;
+}
